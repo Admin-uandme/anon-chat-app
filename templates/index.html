@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Anon Chat</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #chat, #userList { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Anonymous Chat</h2>
+  <div id="register">
+    Username: <input id="username"><br>
+    Mobile: <input id="mobile"><br>
+    <button onclick="register()">Join Chat</button>
+  </div>
+
+  <div id="chatbox" style="display:none">
+    <h3>Online Users:</h3>
+    <ul id="userList"></ul>
+
+    <h3>Chat:</h3>
+    <div id="chat"></div>
+    <input id="msg"><button onclick="send()">Send</button>
+  </div>
+
+  <script>
+    const socket = io();
+
+    function register() {
+      const username = document.getElementById("username").value;
+      const mobile = document.getElementById("mobile").value;
+      socket.emit('register', { username, mobile });
+      document.getElementById("register").style.display = "none";
+      document.getElementById("chatbox").style.display = "block";
+    }
+
+    socket.on('user_list', function(users) {
+      let ul = document.getElementById("userList");
+      ul.innerHTML = "";
+      users.forEach(u => {
+        let li = document.createElement("li");
+        li.innerText = u;
+        ul.appendChild(li);
+      });
+    });
+
+    socket.on('new_message', function(data) {
+      let div = document.getElementById("chat");
+      div.innerHTML += `<p><strong>${data.user}:</strong> ${data.msg}</p>`;
+    });
+
+    function send() {
+      let msg = document.getElementById("msg").value;
+      socket.emit('message', { msg });
+      document.getElementById("msg").value = "";
+    }
+  </script>
+</body>
+</html>
